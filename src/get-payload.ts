@@ -16,6 +16,10 @@ const transporter = nodemailer.createTransport({
     user: 'resend',
     pass: process.env.RESEND_API_KEY,
   },
+  // fix error self-signed certificate in certificate chain
+  tls: {
+    rejectUnauthorized: false,
+  },
 });
 
 let cached = (global as any).payload;
@@ -44,7 +48,7 @@ export const getPayloadClient = async ({ initOptions }: Args = {}): Promise<Payl
     cached.promise = payload.init({
       email: {
         transport: transporter,
-        fromAddress: 'onboarding@resend.com',
+        fromAddress: 'onboarding@resend.dev',
         fromName: 'DigitalMarketplace',
       },
       secret: process.env.PAYLOAD_SECRET,
