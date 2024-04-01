@@ -5,16 +5,16 @@ import { Button, buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { ArrowRight, Loader2 } from 'lucide-react';
+import Link from 'next/link';
+import { useForm } from 'react-hook-form';
+
 import { AuthCredentialsValidator, TAuthCredentialsValidator } from '@/lib/validators/account-credentials-validator';
 import { trpc } from '@/trpc/client';
-import { router } from '@/trpc/trpc';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowRight } from 'lucide-react';
-import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { ZodError } from 'zod';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 const Page = () => {
   const searchParams = useSearchParams();
@@ -39,7 +39,7 @@ const Page = () => {
   });
 
   const { mutate: signIn, isLoading } = trpc.auth.signIn.useMutation({
-    onSuccess: () => {
+    onSuccess: async () => {
       toast.success('Signed in successfully');
 
       router.refresh();
@@ -55,6 +55,8 @@ const Page = () => {
       }
 
       router.push('/');
+      // to refresh homepage when successfully signing up to show My Account
+      router.refresh();
     },
     onError: (err) => {
       if (err.data?.code === 'UNAUTHORIZED') {
@@ -73,13 +75,13 @@ const Page = () => {
         <div className='mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]'>
           <div className='flex flex-col items-center space-y-2 text-center'>
             <Icons.logo className='h-20 w-20' />
-            <h1 className='text-2xl font-bold'>
-              Sign in to your {isSeller ? 'seller' : ''}
-              {''} account
-            </h1>
+            <h1 className='text-2xl font-semibold tracking-tight'>Sign in to your {isSeller ? 'seller' : ''} account</h1>
 
             <Link
-              className={buttonVariants({ variant: 'link', className: 'gap-1.5' })}
+              className={buttonVariants({
+                variant: 'link',
+                className: 'gap-1.5',
+              })}
               href='/sign-up'
             >
               Don&apos;t have an account?
@@ -94,8 +96,10 @@ const Page = () => {
                   <Label htmlFor='email'>Email</Label>
                   <Input
                     {...register('email')}
-                    className={cn({ 'focus-visible:ring-red-500': errors.email })}
-                    placeholder='you@xample.com'
+                    className={cn({
+                      'focus-visible:ring-red-500': errors.email,
+                    })}
+                    placeholder='you@example.com'
                   />
                   {errors?.email && <p className='text-sm text-red-500'>{errors.email.message}</p>}
                 </div>
@@ -105,19 +109,24 @@ const Page = () => {
                   <Input
                     {...register('password')}
                     type='password'
-                    className={cn({ 'focus-visible:ring-red-500': errors.password })}
+                    className={cn({
+                      'focus-visible:ring-red-500': errors.password,
+                    })}
                     placeholder='Password'
                   />
                   {errors?.password && <p className='text-sm text-red-500'>{errors.password.message}</p>}
                 </div>
 
-                <Button>Sign in</Button>
+                <Button disabled={isLoading}>
+                  {isLoading && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
+                  Sign in
+                </Button>
               </div>
             </form>
 
             <div className='relative'>
               <div
-                aria-label='true'
+                aria-hidden='true'
                 className='absolute inset-0 flex items-center'
               >
                 <span className='w-full border-t' />

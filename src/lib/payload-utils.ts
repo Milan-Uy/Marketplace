@@ -11,7 +11,9 @@ export const getServerSideUser = async (cookies: NextRequest['cookies'] | Readon
     },
   });
 
-  const { user } = (await meRes.json()) as { user: User | null };
+  const { user } = (await meRes.json()) as {
+    user: User | null;
+  };
 
   return { user };
 };
